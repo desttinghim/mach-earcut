@@ -34,8 +34,8 @@ pub fn Processor(comptime T: type) type {
             p.triangles.clearRetainingCapacity();
             p.nodes.shrinkRetainingCapacity(0);
 
-            var has_holes = hole_indices != null and hole_indices.?.len > 0;
-            var outer_len: u32 = if (has_holes) hole_indices.?[0] * dim else @as(u32, @intCast(data.len));
+            const has_holes = hole_indices != null and hole_indices.?.len > 0;
+            const outer_len: u32 = if (has_holes) hole_indices.?[0] * dim else @as(u32, @intCast(data.len));
             var outer_node = try p.linkedList(allocator, data, 0, outer_len, dim, true);
 
             if (outer_node == null or p.next[outer_node.?] == p.prev[outer_node.?]) return;
@@ -180,25 +180,25 @@ pub fn Processor(comptime T: type) type {
 
         /// check whether a polygon node forms a valid ear with adjacent nodes
         fn isEar(p: *@This(), ear: NodeIndex) bool {
-            var a = p.prev[ear];
-            var b = ear;
-            var c = p.next[ear];
+            const a = p.prev[ear];
+            const b = ear;
+            const c = p.next[ear];
 
             if (p.area(a, b, c) >= 0) return false; // reflex, can't be an ear
 
             // now make sure we don't have other points inside the potential ear
-            var ax = p.x[a];
-            var bx = p.x[b];
-            var cx = p.x[c];
-            var ay = p.y[a];
-            var by = p.y[b];
-            var cy = p.y[c];
+            const ax = p.x[a];
+            const bx = p.x[b];
+            const cx = p.x[c];
+            const ay = p.y[a];
+            const by = p.y[b];
+            const cy = p.y[c];
 
             // triangle bbox; min & max are calculated like this for speed
-            var x0 = if (ax < bx) (if (ax < cx) ax else cx) else (if (bx < cx) bx else cx);
-            var y0 = if (ay < by) (if (ay < cy) ay else cy) else (if (by < cy) by else cy);
-            var x1 = if (ax > bx) (if (ax > cx) ax else cx) else (if (bx > cx) bx else cx);
-            var y1 = if (ay > by) (if (ay > cy) ay else cy) else (if (by > cy) by else cy);
+            const x0 = if (ax < bx) (if (ax < cx) ax else cx) else (if (bx < cx) bx else cx);
+            const y0 = if (ay < by) (if (ay < cy) ay else cy) else (if (by < cy) by else cy);
+            const x1 = if (ax > bx) (if (ax > cx) ax else cx) else (if (bx > cx) bx else cx);
+            const y1 = if (ay > by) (if (ay > cy) ay else cy) else (if (by > cy) by else cy);
 
             var n = p.next[c];
             while (n != a) {
@@ -212,28 +212,28 @@ pub fn Processor(comptime T: type) type {
         }
 
         fn isEarHashed(p: *@This(), ear: NodeIndex, min_x: T, min_y: T, inv_size: T) bool {
-            var a = p.prev[ear];
-            var b = ear;
-            var c = p.next[ear];
+            const a = p.prev[ear];
+            const b = ear;
+            const c = p.next[ear];
 
             if (p.area(a, b, c) >= 0) return false; // reflex, can't be an ear
 
-            var ax = p.x[a];
-            var bx = p.x[b];
-            var cx = p.x[c];
-            var ay = p.y[a];
-            var by = p.y[b];
-            var cy = p.y[c];
+            const ax = p.x[a];
+            const bx = p.x[b];
+            const cx = p.x[c];
+            const ay = p.y[a];
+            const by = p.y[b];
+            const cy = p.y[c];
 
             // triangle bbox; min & max are calculated like this for speed
-            var x0 = if (ax < bx) (if (ax < cx) ax else cx) else (if (bx < cx) bx else cx);
-            var y0 = if (ay < by) (if (ay < cy) ay else cy) else (if (by < cy) by else cy);
-            var x1 = if (ax > bx) (if (ax > cx) ax else cx) else (if (bx > cx) bx else cx);
-            var y1 = if (ay > by) (if (ay > cy) ay else cy) else (if (by > cy) by else cy);
+            const x0 = if (ax < bx) (if (ax < cx) ax else cx) else (if (bx < cx) bx else cx);
+            const y0 = if (ay < by) (if (ay < cy) ay else cy) else (if (by < cy) by else cy);
+            const x1 = if (ax > bx) (if (ax > cx) ax else cx) else (if (bx > cx) bx else cx);
+            const y1 = if (ay > by) (if (ay > cy) ay else cy) else (if (by > cy) by else cy);
 
             // z-order range for the current triangle bbox;
-            var min_z = zOrder(x0, y0, min_x, min_y, inv_size);
-            var max_z = zOrder(x1, y1, min_x, min_y, inv_size);
+            const min_z = zOrder(x0, y0, min_x, min_y, inv_size);
+            const max_z = zOrder(x1, y1, min_x, min_y, inv_size);
 
             var p2 = p.prev_z[ear];
             var n = p.next_z[ear];
@@ -271,8 +271,8 @@ pub fn Processor(comptime T: type) type {
             var start = start_in;
             var n = start;
             while (true) {
-                var a = p.prev[n];
-                var b = p.next[p.next[n]];
+                const a = p.prev[n];
+                const b = p.next[p.next[n]];
 
                 if (!p.equals(a, b) and p.intersects(a, n, p.next[n], b) and p.locallyInside(a, b) and p.locallyInside(b, a)) {
                     try triangles.append(allocator, p.i[a] / dim | 0);
@@ -330,7 +330,7 @@ pub fn Processor(comptime T: type) type {
             var end: u32 = undefined;
 
             var i: u32 = 0;
-            var len = hole_indices.len;
+            const len = hole_indices.len;
             while (i < len) : (i += 1) {
                 start = hole_indices[i] * dim;
                 end = if (i < len - 1) hole_indices[i + 1] * dim else @as(u32, @intCast(data.len));
@@ -358,12 +358,12 @@ pub fn Processor(comptime T: type) type {
 
         /// find a bridge between vertices that connects hole with an outer ring and and link it
         fn eliminateHole(p: *@This(), allocator: Allocator, hole: NodeIndex, outer_node: NodeIndex) error{OutOfMemory}!?NodeIndex {
-            var bridge = p.findHoleBridge(hole, outer_node);
+            const bridge = p.findHoleBridge(hole, outer_node);
             if (bridge == null) {
                 return outer_node;
             }
 
-            var bridge_reverse = try p.splitPolygon(allocator, bridge.?, hole);
+            const bridge_reverse = try p.splitPolygon(allocator, bridge.?, hole);
 
             // filter collinear points around the cuts
             _ = p.filterPoints(bridge_reverse, p.next[bridge_reverse]); // TODO: is this ineffective?
@@ -373,8 +373,8 @@ pub fn Processor(comptime T: type) type {
         /// David Eberly's algorithm for finding a bridge between hole and outer polygon
         fn findHoleBridge(p: *@This(), hole: NodeIndex, outer_node: NodeIndex) ?NodeIndex {
             var n = outer_node;
-            var hx = p.x[hole];
-            var hy = p.y[hole];
+            const hx = p.x[hole];
+            const hy = p.y[hole];
             var qx = -inf(T);
             var m: ?NodeIndex = null;
 
@@ -382,7 +382,7 @@ pub fn Processor(comptime T: type) type {
             // segment's endpoint with lesser x will be potential connection point
             while (true) {
                 if (hy <= p.y[n] and hy >= p.y[p.next[n]] and p.y[p.next[n]] != p.y[n]) {
-                    var x = p.x[n] + (hy - p.y[n]) * (p.x[p.next[n]] - p.x[n]) / (p.y[p.next[n]] - p.y[n]);
+                    const x = p.x[n] + (hy - p.y[n]) * (p.x[p.next[n]] - p.x[n]) / (p.y[p.next[n]] - p.y[n]);
                     if (x <= hx and x > qx) {
                         qx = x;
                         m = if (p.x[n] < p.x[p.next[n]]) n else p.next[n];
@@ -399,9 +399,9 @@ pub fn Processor(comptime T: type) type {
             // if there are no points found, we have a valid connection;
             // otherwise choose the point of the minimum angle with the ray as connection point
 
-            var stop = m.?;
-            var mx = p.x[m.?];
-            var my = p.y[m.?];
+            const stop = m.?;
+            const mx = p.x[m.?];
+            const my = p.y[m.?];
             var tan_min = inf(T);
             var tan: T = 0;
 
@@ -570,10 +570,10 @@ pub fn Processor(comptime T: type) type {
 
         /// check if two segments intersect
         fn intersects(p: *@This(), p1: NodeIndex, q1: NodeIndex, p2: NodeIndex, q2: NodeIndex) bool {
-            var o1 = sign(p.area(p1, q1, p2));
-            var o2 = sign(p.area(p1, q1, q2));
-            var o3 = sign(p.area(p2, q2, p1));
-            var o4 = sign(p.area(p2, q2, q1));
+            const o1 = sign(p.area(p1, q1, p2));
+            const o2 = sign(p.area(p1, q1, q2));
+            const o3 = sign(p.area(p2, q2, p1));
+            const o4 = sign(p.area(p2, q2, q1));
 
             if (o1 != o2 and o3 != o4) return true; // general case
 
@@ -614,8 +614,8 @@ pub fn Processor(comptime T: type) type {
         fn middleInside(p: *@This(), a: NodeIndex, b: NodeIndex) bool {
             var n = a;
             var inside = false;
-            var px = (p.x[a] + p.x[b]) / 2.0;
-            var py = (p.y[a] + p.y[b]) / 2.0;
+            const px = (p.x[a] + p.x[b]) / 2.0;
+            const py = (p.y[a] + p.y[b]) / 2.0;
             while (true) {
                 if (((p.y[n] > py) != (p.y[p.next[n]] > py)) and p.y[p.next[n]] != p.y[n] and
                     (px < (p.x[p.next[n]] - p.x[n]) * (py - p.y[n]) / (p.y[p.next[n]] - p.y[n]) + p.x[n]))
@@ -630,8 +630,8 @@ pub fn Processor(comptime T: type) type {
         /// polygon into two; if one belongs to the outer ring and another to a hole, it merges it
         /// into a single ring.
         fn splitPolygon(p: *@This(), allocator: Allocator, a: NodeIndex, b: NodeIndex) error{OutOfMemory}!NodeIndex {
-            var b2 = @as(NodeIndex, @intCast(p.nodes.len + 1));
-            var a2 = try p.initNode(allocator, .{ // a2
+            const b2 = @as(NodeIndex, @intCast(p.nodes.len + 1));
+            const a2 = try p.initNode(allocator, .{ // a2
                 .i = p.i[a],
                 .x = p.x[a],
                 .y = p.y[a],
@@ -735,8 +735,10 @@ pub fn Processor(comptime T: type) type {
     };
 }
 
-test {
-    std.testing.refAllDeclsRecursive(@This());
+comptime {
+    if (@import("builtin").is_test) {
+        std.testing.refAllDeclsRecursive(@This());
+    }
 }
 
 test "basic" {
